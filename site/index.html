@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#071522">
+  <title>Y 形摆仿真实验台｜Bowditch Pendulum</title>
+  <meta name="description" content="交互探索 Y 形摆的几何参数、双模态振动与李萨如轨迹。">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23071522'/%3E%3Cpath d='M10 11 32 32 54 11M32 32v18' fill='none' stroke='%2358d6da' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='52' r='7' fill='%23ffb45c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+  <style>.legend-line.forecast{opacity:.3}.trace-panel .canvas-foot{gap:8px}.trace-panel .canvas-foot span{white-space:nowrap}</style>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><div><p class="eyebrow">INTERACTIVE PHYSICS LAB</p><h1>Y 形摆 <span>Bowditch pendulum</span></h1></div></div>
+      <div class="top-actions"><span class="model-pill">双模态近似模型</span><button id="aboutButton" class="text-button" type="button" aria-expanded="false" aria-controls="aboutPanel">模型说明 <span aria-hidden="true">↗</span></button></div>
+    </header>
+
+    <aside id="aboutPanel" class="about-panel" hidden>
+      <div><strong>模型边界</strong><p>上方两根绳与固定点确定汇合节点的圆周约束。质量可忽略的节点、小振幅且两模态近似解耦时，沿支点连线方向的有效摆长为 <i>L<sub>x</sub> = l<sub>3</sub></i>，垂直方向为 <i>L<sub>y</sub> = h + l<sub>3</sub></i>。网页分别积分两个阻尼单摆方程，再合成摆球轨迹。大角度下它仅是趋势模型，未求解完整绳张力、节点质量、绳松弛及模态耦合。</p></div>
+      <div><strong>题号校正</strong><p>Y-shaped pendulum 是 <a href="https://iypt.org/iypt-2027-problems/" target="_blank" rel="noopener noreferrer">IYPT 2027 第 5 题</a>；此前资料中的“IYPT 2026 第 5 题”与官网不一致。</p></div>
+      <button id="closeAbout" class="icon-button" type="button" aria-label="关闭模型说明">×</button>
+    </aside>
+
+    <main class="workbench">
+      <section class="controls-panel panel" aria-labelledby="parametersTitle">
+        <div class="panel-heading"><div><p class="section-index">01 / INPUT</p><h2 id="parametersTitle">参数设置</h2></div><button id="resetButton" class="quiet-button" type="button">恢复默认</button></div>
+        <div class="presets" role="group" aria-label="典型图样预设">
+          <button type="button" data-preset="near11">近 1:1</button>
+          <button type="button" data-preset="two1" class="selected">2:1</button>
+          <button type="button" data-preset="three2">3:2</button>
+          <button type="button" data-preset="detuned">失谐</button>
+        </div>
+        <div class="control-section"><div class="section-label"><span>几何结构</span><span class="section-hint">单位 cm</span></div>
+          <label class="control"><span>支点间距 <i>d</i></span><output for="span" id="spanValue"></output><input id="span" type="range" min="10" max="80" step="1" value="30"></label>
+          <label class="control"><span>左支线 <i>l₁</i></span><output for="left" id="leftValue"></output><input id="left" type="range" min="16" max="140" step="0.5" value="76.5"></label>
+          <label class="control"><span>右支线 <i>l₂</i></span><output for="right" id="rightValue"></output><input id="right" type="range" min="16" max="140" step="0.5" value="76.5"></label>
+          <label class="control"><span>下垂绳 <i>l₃</i></span><output for="lower" id="lowerValue"></output><input id="lower" type="range" min="15" max="80" step="1" value="25"></label>
+        </div>
+        <div class="control-section"><div class="section-label"><span>初始条件</span><span class="section-hint">两主模态</span></div>
+          <label class="control"><span><i>x</i> 向振幅</span><output for="ampX" id="ampXValue"></output><input id="ampX" type="range" min="1" max="25" step="1" value="13"></label>
+          <label class="control"><span><i>y</i> 向振幅</span><output for="ampY" id="ampYValue"></output><input id="ampY" type="range" min="1" max="25" step="1" value="9"></label>
+          <label class="control"><span>相位差 <i>φ</i></span><output for="phase" id="phaseValue"></output><input id="phase" type="range" min="-180" max="180" step="5" value="45"></label>
+          <label class="control"><span>阻尼 <i>β</i></span><output for="damping" id="dampingValue"></output><input id="damping" type="range" min="0" max="0.12" step="0.005" value="0.006"></label>
+        </div>
+        <div id="geometryError" class="geometry-error" role="alert" hidden></div>
+      </section>
+
+      <section class="visual-column" aria-label="实时仿真结果">
+        <div class="simulation-top">
+          <section class="panel apparatus-panel" aria-labelledby="apparatusTitle"><div class="panel-heading compact"><div><p class="section-index">02 / APPARATUS</p><h2 id="apparatusTitle">装置运动</h2></div><span class="view-tag">斜视图</span></div><canvas id="apparatusCanvas" role="img" aria-label="Y 形摆装置的实时运动示意"></canvas><div class="canvas-foot"><span><i class="legend-dot junction"></i>汇合节点</span><span><i class="legend-dot bob"></i>摆球</span></div></section>
+          <section class="panel trace-panel" aria-labelledby="traceTitle"><div class="panel-heading compact"><div><p class="section-index">03 / X–Y TRACE</p><h2 id="traceTitle">李萨如轨迹</h2></div><span class="view-tag">俯视图</span></div><canvas id="traceCanvas" role="img" aria-label="摆球在水平面投影的李萨如轨迹"></canvas><div class="canvas-foot"><span><i class="legend-line forecast"></i>10 s 预测</span><span><i class="legend-line"></i>已运行</span><span><i class="legend-dot current"></i>当前位置</span></div></section>
+        </div>
+        <div class="transport panel"><button id="playButton" class="play-button" type="button" aria-label="暂停仿真">❚❚</button><button id="restartButton" class="quiet-button" type="button">从头播放</button><label class="time-control"><span>时间 <strong id="timeValue">0.0 s</strong></span><input id="timeSlider" type="range" min="0" max="40" step="0.02" value="0" aria-label="调整仿真时间"></label><label class="speed-control">速度 <select id="speedSelect" aria-label="播放速度"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label></div>
+        <div class="metrics" aria-label="模型预测值"><div class="metric"><span>横向主频</span><strong id="freqX">—</strong><small>fₓ = √(g / Lₓ) / 2π</small></div><div class="metric"><span>纵向主频</span><strong id="freqY">—</strong><small>fᵧ = √(g / Lᵧ) / 2π</small></div><div class="metric accent"><span>频率比</span><strong id="ratio">—</strong><small id="ratioHint">fₓ / fᵧ</small></div><div class="metric"><span>节点垂距</span><strong id="height">—</strong><small>h，由几何约束计算</small></div></div>
+        <section class="panel signals-panel" aria-labelledby="signalsTitle"><div class="panel-heading compact"><div><p class="section-index">04 / TIME SERIES</p><h2 id="signalsTitle">两方向位移</h2></div><div class="signal-legend"><span><i class="legend-line cyan"></i>x(t)</span><span><i class="legend-line violet"></i>y(t)</span></div></div><canvas id="signalCanvas" role="img" aria-label="横向及纵向位移随时间变化曲线"></canvas><div class="signals-foot"><span id="modelEquation">θ̈ + 2βθ̇ + (g/L) sin θ = 0</span><button id="exportButton" class="quiet-button" type="button">导出 40 s CSV ↗</button></div></section>
+      </section>
+    </main>
+    <footer class="page-foot"><p>几何有效摆长 + 双向阻尼单摆数值积分 · 用于参数趋势与轨迹形态探索</p><a href="https://iypt.org/iypt-2027-problems/" target="_blank" rel="noopener noreferrer">赛题原文 ↗</a></footer>
+  </div>
+</body>
+</html>
