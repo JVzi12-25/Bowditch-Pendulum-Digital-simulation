@@ -1,0 +1,35 @@
+# 凭据与密钥 —— 永不提交（本仓库是公网公开的）
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+secrets.json
+credentials.json
+.npmrc
+
+# 操作系统与编辑器产物
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# 本地草稿、笔记与实验结果（IYPT/CUPT 备赛资料不要混进这个公开仓库）
+notes/
+drafts/
+data-local/
+*.local.*
+
+# 日志与临时文件
+*.log
+*.tmp
+*.bak
+*~
+.cache/
+
+# 依赖目录（本项目无构建步骤，出现即说明是本地误装）
+node_modules/
